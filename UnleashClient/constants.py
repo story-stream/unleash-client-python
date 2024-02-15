@@ -1,13 +1,13 @@
 # Library
-SDK_NAME = "unleash-client-python"
-SDK_VERSION = "3.0.0"
+SDK_NAME = u"unleash-client-python"
+SDK_VERSION = u"3.0.0"
 REQUEST_TIMEOUT = 30
-METRIC_LAST_SENT_TIME = "mlst"
+METRIC_LAST_SENT_TIME = u"mlst"
 
 # =Unleash=
-APPLICATION_HEADERS = {"Content-Type": "application/json"}
+APPLICATION_HEADERS = {u"Content-Type": u"application/json"}
 
 # Paths
-REGISTER_URL = "/client/register"
-FEATURES_URL = "/client/features"
-METRICS_URL = "/client/metrics"
+REGISTER_URL = u"/client/register"
+FEATURES_URL = u"/client/features"
+METRICS_URL = u"/client/metrics"

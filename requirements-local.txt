@@ -1,8 +1,10 @@
 # App packages
-requests==2.22.0
+requests==2.6.0
 fcache==0.4.7
 mmh3==2.5.1
 APScheduler==3.6.1
+python-dateutil==2.4.2
+chainmap==1.0.3
 
 # Development packages
 bumpversion

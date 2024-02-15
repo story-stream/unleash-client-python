@@ -1,9 +1,10 @@
 # pylint: disable=dangerous-default-value
+from __future__ import absolute_import
 import warnings
 from UnleashClient.constraints import Constraint
 
 
-class Strategy:
+class Strategy(object):
     """
     The parent class for default and custom strategies.
 
@@ -12,9 +13,9 @@ class Strategy:
     * apply() - Your feature provisioning
     """
     def __init__(self,
-                 constraints: list = [],
-                 parameters: dict = {},
-                 ) -> None:
+                 constraints = [],
+                 parameters = {},
+                 ):
         """
         A generic strategy objects.
 
@@ -28,13 +29,13 @@ class Strategy:
         self.parsed_constraints = self.load_constraints(constraints)
         self.parsed_provisioning = self.load_provisioning()
 
-    def __call__(self, context: dict = None):
+    def __call__(self, context = None):
         warnings.warn(
-            "unleash-client-python v3.x.x requires overriding the execute() method instead of the __call__() method.",
+            u"unleash-client-python v3.x.x requires overriding the execute() method instead of the __call__() method.",
             DeprecationWarning
         )
 
-    def execute(self, context: dict = None) -> bool:
+    def execute(self, context = None):
         """
         Executes the strategies by:
         - Checking constraints
@@ -50,7 +51,7 @@ class Strategy:
 
         return flag_state
 
-    def load_constraints(self, constraints_list: list) -> list:  #pylint: disable=R0201
+    def load_constraints(self, constraints_list):  #pylint: disable=R0201
         """
         Loads constraints from provisioning.
 
@@ -64,7 +65,7 @@ class Strategy:
         return parsed_constraints_list
 
     # pylint: disable=no-self-use
-    def load_provisioning(self) -> list:
+    def load_provisioning(self):
         """
         Method to load data on object initialization, if desired.
 
@@ -72,7 +73,7 @@ class Strategy:
         """
         return []
 
-    def apply(self, context: dict = None) -> bool:  #pylint: disable=W0613,R0201
+    def apply(self, context = None):  #pylint: disable=W0613,R0201
         """
         Strategy implementation goes here.
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from .Strategy import Strategy
 from .Default import Default
 from .UserWithId import UserWithId

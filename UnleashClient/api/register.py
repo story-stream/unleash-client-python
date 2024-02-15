@@ -1,18 +1,20 @@
+from __future__ import absolute_import
 import json
-from datetime import datetime, timezone
+from datetime import datetime
+from dateutil.tz import tzutc
 import requests
 from UnleashClient.constants import SDK_NAME, SDK_VERSION, REQUEST_TIMEOUT, APPLICATION_HEADERS, REGISTER_URL
 from UnleashClient.utils import LOGGER
 
 
 # pylint: disable=broad-except
-def register_client(url: str,
-                    app_name: str,
-                    instance_id: str,
-                    metrics_interval: int,
-                    custom_headers: dict,
-                    custom_options: dict,
-                    supported_strategies: dict) -> bool:
+def register_client(url,
+                    app_name,
+                    instance_id,
+                    metrics_interval,
+                    custom_headers,
+                    custom_options,
+                    supported_strategies):
     """
     Attempts to register client with unleash server.
 
@@ -30,31 +32,33 @@ def register_client(url: str,
     :return: true if registration successful, false if registration unsuccessful or exception.
     """
     registation_request = {
-        "appName": app_name,
-        "instanceId": instance_id,
-        "sdkVersion": "{}:{}".format(SDK_NAME, SDK_VERSION),
-        "strategies": [*supported_strategies],
-        "started": datetime.now(timezone.utc).isoformat(),
-        "interval": metrics_interval
+        u"appName": app_name,
+        u"instanceId": instance_id,
+        u"sdkVersion": u"{}:{}".format(SDK_NAME, SDK_VERSION),
+        u"strategies": supported_strategies.keys(),
+        u"started": datetime.now(tzutc()).isoformat(),
+        u"interval": metrics_interval
     }
 
     try:
-        LOGGER.info("Registering unleash client with unleash @ %s", url)
-        LOGGER.info("Registration request information: %s", registation_request)
+        LOGGER.info(u"Registering unleash client with unleash @ %s", url)
+        LOGGER.info(u"Registration request information: %s", registation_request)
 
+        headers = custom_headers.copy()
+        headers.update(APPLICATION_HEADERS)
         resp = requests.post(url + REGISTER_URL,
                              data=json.dumps(registation_request),
-                             headers={**custom_headers, **APPLICATION_HEADERS},
+                             headers=headers,
                              timeout=REQUEST_TIMEOUT, **custom_options)
 
         if resp.status_code != 202:
-            LOGGER.warning("unleash client registration failed.")
+            LOGGER.warning(u"unleash client registration failed.")
             return False
 
-        LOGGER.info("unleash client successfully registered!")
+        LOGGER.info(u"unleash client successfully registered!")
 
         return True
     except Exception:
-        LOGGER.exception("unleash client registration failed.")
+        LOGGER.exception(u"unleash client registration failed.")
 
     return False

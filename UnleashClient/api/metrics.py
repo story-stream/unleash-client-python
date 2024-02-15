@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import json
 import requests
 from UnleashClient.constants import REQUEST_TIMEOUT, APPLICATION_HEADERS, METRICS_URL
@@ -5,10 +6,10 @@ from UnleashClient.utils import LOGGER
 
 
 # pylint: disable=broad-except
-def send_metrics(url: str,
-                 request_body: dict,
-                 custom_headers: dict,
-                 custom_options: dict) -> bool:
+def send_metrics(url,
+                 request_body,
+                 custom_headers,
+                 custom_options):
     """
     Attempts to send metrics to Unleash server
 
@@ -24,22 +25,24 @@ def send_metrics(url: str,
     :return: true if registration successful, false if registration unsuccessful or exception.
     """
     try:
-        LOGGER.info("Sending messages to with unleash @ %s", url)
-        LOGGER.info("unleash metrics information: %s", request_body)
+        LOGGER.info(u"Sending messages to with unleash @ %s", url)
+        LOGGER.info(u"unleash metrics information: %s", request_body)
 
+        headers = custom_headers.copy()
+        headers.update(APPLICATION_HEADERS)
         resp = requests.post(url + METRICS_URL,
                              data=json.dumps(request_body),
-                             headers={**custom_headers, **APPLICATION_HEADERS},
+                             headers=headers,
                              timeout=REQUEST_TIMEOUT, **custom_options)
 
         if resp.status_code != 202:
-            LOGGER.warning("unleash metrics submission failed.")
+            LOGGER.warning(u"unleash metrics submission failed.")
             return False
 
-        LOGGER.info("unleash metrics successfully sent!")
+        LOGGER.info(u"unleash metrics successfully sent!")
 
         return True
     except Exception:
-        LOGGER.exception("unleash metrics failed to send.")
+        LOGGER.exception(u"unleash metrics failed to send.")
 
     return False

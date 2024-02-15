@@ -1,4 +1,6 @@
-from datetime import datetime, timezone
+from __future__ import absolute_import
+from datetime import datetime
+from dateutil.tz import tzutc
 from typing import Dict
 from fcache.cache import FileCache
 from apscheduler.job import Job
@@ -14,24 +16,24 @@ from .deprecation_warnings import strategy_v2xx_deprecation_check
 
 
 # pylint: disable=dangerous-default-value
-class UnleashClient():
+class UnleashClient(object):
     """
     Client implementation.
 
     """
     def __init__(self,
-                 url: str,
-                 app_name: str,
-                 environment: str = "default",
-                 instance_id: str = "unleash-client-python",
-                 refresh_interval: int = 15,
-                 metrics_interval: int = 60,
-                 disable_metrics: bool = False,
-                 disable_registration: bool = False,
-                 custom_headers: dict = {},
-                 custom_options: dict = {},
-                 custom_strategies: dict = {},
-                 cache_directory: str = None) -> None:
+                 url,
+                 app_name,
+                 environment = u"default",
+                 instance_id = u"unleash-client-python",
+                 refresh_interval = 15,
+                 metrics_interval = 60,
+                 disable_metrics = False,
+                 disable_registration = False,
+                 custom_headers = {},
+                 custom_options = {},
+                 custom_strategies = {},
+                 cache_directory = None):
         """
         A client for the Unleash feature toggle system.
 
@@ -48,7 +50,7 @@ class UnleashClient():
         :param cache_directory: Location of the cache directory. When unset, FCache will determine the location
         """
         # Configuration
-        self.unleash_url = url.rstrip('\\')
+        self.unleash_url = url.rstrip(u'\\')
         self.unleash_app_name = app_name
         self.unleash_environment = environment
         self.unleash_instance_id = instance_id
@@ -59,8 +61,8 @@ class UnleashClient():
         self.unleash_custom_headers = custom_headers
         self.unleash_custom_options = custom_options
         self.unleash_static_context = {
-            "appName": self.unleash_app_name,
-            "environment": self.unleash_environment
+            u"appName": self.unleash_app_name,
+            u"environment": self.unleash_environment
         }
 
         # Class objects
@@ -69,30 +71,32 @@ class UnleashClient():
         self.scheduler = BackgroundScheduler()
         self.fl_job = None  # type: Job
         self.metric_job = None  # type: Job
-        self.cache[METRIC_LAST_SENT_TIME] = datetime.now(timezone.utc)
+        self.cache[METRIC_LAST_SENT_TIME] = datetime.now(tzutc())
         self.cache.sync()
 
         # Mappings
         default_strategy_mapping = {
-            "applicationHostname": ApplicationHostname,
-            "default": Default,
-            "gradualRolloutRandom": GradualRolloutRandom,
-            "gradualRolloutSessionId": GradualRolloutSessionId,
-            "gradualRolloutUserId": GradualRolloutUserId,
-            "remoteAddress": RemoteAddress,
-            "userWithId": UserWithId,
-            "flexibleRollout": FlexibleRollout
+            u"applicationHostname": ApplicationHostname,
+            u"default": Default,
+            u"gradualRolloutRandom": GradualRolloutRandom,
+            u"gradualRolloutSessionId": GradualRolloutSessionId,
+            u"gradualRolloutUserId": GradualRolloutUserId,
+            u"remoteAddress": RemoteAddress,
+            u"userWithId": UserWithId,
+            u"flexibleRollout": FlexibleRollout
         }
 
         if custom_strategies:
             strategy_v2xx_deprecation_check([x for x in custom_strategies.values()])  # pylint: disable=R1721
 
-        self.strategy_mapping = {**custom_strategies, **default_strategy_mapping}
+        self.strategy_mapping = {}
+        self.strategy_mapping.update(custom_strategies)
+        self.strategy_mapping.update(default_strategy_mapping)
 
         # Client status
         self.is_initialized = False
 
-    def initialize_client(self) -> None:
+    def initialize_client(self):
         """
         Initializes client and starts communication with central unleash server(s).
 
@@ -105,24 +109,24 @@ class UnleashClient():
         """
         # Setup
         fl_args = {
-            "url": self.unleash_url,
-            "app_name": self.unleash_app_name,
-            "instance_id": self.unleash_instance_id,
-            "custom_headers": self.unleash_custom_headers,
-            "custom_options": self.unleash_custom_options,
-            "cache": self.cache,
-            "features": self.features,
-            "strategy_mapping": self.strategy_mapping
+            u"url": self.unleash_url,
+            u"app_name": self.unleash_app_name,
+            u"instance_id": self.unleash_instance_id,
+            u"custom_headers": self.unleash_custom_headers,
+            u"custom_options": self.unleash_custom_options,
+            u"cache": self.cache,
+            u"features": self.features,
+            u"strategy_mapping": self.strategy_mapping
         }
 
         metrics_args = {
-            "url": self.unleash_url,
-            "app_name": self.unleash_app_name,
-            "instance_id": self.unleash_instance_id,
-            "custom_headers": self.unleash_custom_headers,
-            "custom_options": self.unleash_custom_options,
-            "features": self.features,
-            "ondisk_cache": self.cache
+            u"url": self.unleash_url,
+            u"app_name": self.unleash_app_name,
+            u"instance_id": self.unleash_instance_id,
+            u"custom_headers": self.unleash_custom_headers,
+            u"custom_options": self.unleash_custom_options,
+            u"features": self.features,
+            u"ondisk_cache": self.cache
         }
 
         # Register app
@@ -162,9 +166,9 @@ class UnleashClient():
 
     # pylint: disable=broad-except
     def is_enabled(self,
-                   feature_name: str,
-                   context: dict = {},
-                   default_value: bool = False) -> bool:
+                   feature_name,
+                   context = {},
+                   default_value = False):
         """
         Checks if a feature toggle is enabled.
 
@@ -181,11 +185,11 @@ class UnleashClient():
         if self.is_initialized:
             try:
                 return self.features[feature_name].is_enabled(context, default_value)
-            except Exception as excep:
-                LOGGER.warning("Returning default value for feature: %s", feature_name)
-                LOGGER.warning("Error checking feature flag: %s", excep)
+            except Exception, excep:
+                LOGGER.warning(u"Returning default value for feature: %s", feature_name)
+                LOGGER.warning(u"Error checking feature flag: %s", excep)
                 return default_value
         else:
-            LOGGER.warning("Returning default value for feature: %s", feature_name)
-            LOGGER.warning("Attempted to get feature_flag %s, but client wasn't initialized!", feature_name)
+            LOGGER.warning(u"Returning default value for feature: %s", feature_name)
+            LOGGER.warning(u"Attempted to get feature_flag %s, but client wasn't initialized!", feature_name)
             return default_value
